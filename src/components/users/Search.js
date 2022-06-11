@@ -1,29 +1,29 @@
 import React, { useState, useContext} from 'react';
 import GithubContext from '../../context/github/githubContext';
 import AlertContext from '../../context/alert/alertContext';
+import {searchUsers} from '../../context/github/GitHubActions'
 
 const Search = () => {
- 
-
-
-  const githubContext = useContext(GithubContext);
-  const alertContext = useContext(AlertContext);
-  
-  const { clearUsers, searchUsers, users } = githubContext;
-  const { setAlert } = alertContext;
+    
+  const {  users ,dispatch } = useContext(GithubContext);
+  const { setAlert,removeAlert } = useContext(AlertContext);
 
   const [text, setText] = useState('');
+  
 
  
   const onChange = e => {
     setText(e.target.value);
+    removeAlert()
   };
-  const onSubmit = e => {
+  const onSubmit = async(e) => {
     e.preventDefault();
     if (text === '') {
-      setAlert('Please enter name', 'light');
-    } else {
-      searchUsers(text);
+      setAlert('Please enter name', 'error');
+    } else {   
+      dispatch({type:'SET_LOADING'})  
+      const users= await searchUsers(text);
+      dispatch({type:'SEARCH_USERS',payload:users})
       setText('');
     }
   };
@@ -45,7 +45,7 @@ const Search = () => {
         />
       </form>
       {users.length > 0 && (
-        <button className="btn btn-light btn-block" onClick={clearUsers}>
+        <button className="btn btn-light btn-block" onClick={()=>dispatch({type:'CLEAR_USERS'})}>
           Clear
         </button>
       )}

@@ -1,20 +1,32 @@
-import React, { useEffect, Fragment, useContext } from 'react';
-import Spinner from '../layout/Spinner';
-import Repos from '../repos/Repos';
-import { Link } from 'react-router-dom';
-import GithubContext from '../../context/github/githubContext';
+import React, { useEffect, useContext } from "react";
+import { Link, useParams } from "react-router-dom";
+import Spinner from "../layout/Spinner";
+import Repos from "../repos/Repos";
+import GithubContext from "../../context/github/githubContext";
+import { getUser, getUserRepos } from "../../context/github/GitHubActions";
 
-const Details = ({ match }) => {
-  const githubContext = useContext(GithubContext);
-  const { getUser, user, loading,getUserRepos,repos } = githubContext;
+const Details = () => {
+  const { user, loading, repos, dispatch } = useContext(GithubContext);
+  const { username } = useParams();
 
   useEffect(() => {
-    //componentDidMount
-    const username = match.params.username;
-    getUser(username);
-    getUserRepos(username);
-    //eslint-disable-next-line
-  }, []); //run once
+
+    
+    dispatch({ type: "SET_LOADING" });
+
+    const getUserData = async () => {
+     
+      const getUserData = await getUser(username);
+      dispatch({type:'SEARCH_USER',payload:getUserData})
+
+      const userRepos = await getUserRepos(username);
+      dispatch({type:"GET_REPOS",payload:userRepos})
+    };
+
+
+    getUserData()
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const {
     login,
@@ -28,12 +40,12 @@ const Details = ({ match }) => {
     followers,
     following,
     public_repos,
-    public_gists
+    public_gists,
   } = user;
 
   if (loading) return <Spinner />;
   return (
-    <Fragment>
+    <div className="main">
       <Link to="/" className="btn btn-light">
         Back to search
       </Link>
@@ -42,42 +54,47 @@ const Details = ({ match }) => {
           <img
             src={avatar_url}
             className="round-img"
-            alt=""
-            style={{ width: '150px' }}
+            alt="avatar"
+            style={{ width: "150px" }}
           />
           <h1>{name}</h1>
           <p>Location: {location}</p>
         </div>
         <div>
           {bio && (
-            <Fragment>
+            <>
               <h3>Bio</h3>
               <p>{bio}</p>
-            </Fragment>
+            </>
           )}
-          <a href={html_url} className="btn btn-dark my-1">
+          <a
+            href={html_url}
+            className="btn btn-dark my-1"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             Visit Github Profile
           </a>
           <ul>
             <li>
               {login && (
-                <Fragment>
+                <>
                   <strong>Username: </strong> {login}
-                </Fragment>
+                </>
               )}
             </li>
             <li>
               {company && (
-                <Fragment>
+                <>
                   <strong>Company: </strong> {company}
-                </Fragment>
+                </>
               )}
             </li>
             <li>
               {blog && (
-                <Fragment>
+                <>
                   <strong>Blog: </strong> {blog}
-                </Fragment>
+                </>
               )}
             </li>
           </ul>
@@ -90,9 +107,8 @@ const Details = ({ match }) => {
         <div className="badge badge-dark">Public_gists: {public_gists}</div>
       </div>
       <Repos repos={repos} />
-    </Fragment>
+    </div>
   );
 };
-
 
 export default Details;
