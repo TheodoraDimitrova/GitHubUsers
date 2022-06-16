@@ -1,12 +1,14 @@
-import React, { useState, useContext} from 'react';
+import React, { useState, useContext, useRef} from 'react';
 import GithubContext from '../../context/github/githubContext';
 import AlertContext from '../../context/alert/alertContext';
 import {searchUsers} from '../../context/github/GitHubActions'
+
 
 const Search = () => {
     
   const {  users ,dispatch } = useContext(GithubContext);
   const { setAlert,removeAlert } = useContext(AlertContext);
+  const inputRef =useRef()
 
   const [text, setText] = useState('');
   
@@ -19,6 +21,7 @@ const Search = () => {
   const onSubmit = async(e) => {
     e.preventDefault();
     if (text === '') {
+      inputRef.current.focus()
       setAlert('Please enter name', 'error');
     } else {   
       dispatch({type:'SET_LOADING'})  
@@ -37,6 +40,7 @@ const Search = () => {
           placeholder="Search Users..."
           value={text}
           onChange={onChange}
+          ref={inputRef}
         />
         <input
           type="submit"
